@@ -10,6 +10,7 @@ import Resources from "./pages/Resources";
 import Requests from "./pages/Requests";
 import AppLayout from "./components/AppLayout";
 import { AuthProvider } from '@/context/AuthContext';
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/home" element={<Home />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/requests" element={<Requests />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
