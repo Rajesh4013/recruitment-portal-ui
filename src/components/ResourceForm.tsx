@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Autocomplete, TextField, Chip } from "@mui/material";
 import { resourceService } from '@/services/resourceService';
+import { toast, Toaster } from 'react-hot-toast';
 
 const jobTypes = [
     { value: 'full-time', label: 'Full Time' },
@@ -79,14 +80,12 @@ const panelMembers = [
 ];
 
 const timeSlots = [
-  // Morning slots
   { value: '09:00', label: '09:00 AM', period: 'Morning' },
   { value: '09:30', label: '09:30 AM', period: 'Morning' },
   { value: '10:00', label: '10:00 AM', period: 'Morning' },
   { value: '10:30', label: '10:30 AM', period: 'Morning' },
   { value: '11:00', label: '11:00 AM', period: 'Morning' },
   { value: '11:30', label: '11:30 AM', period: 'Morning' },
-  // Afternoon slots
   { value: '14:00', label: '02:00 PM', period: 'Afternoon' },
   { value: '14:30', label: '02:30 PM', period: 'Afternoon' },
   { value: '15:00', label: '03:00 PM', period: 'Afternoon' },
@@ -95,7 +94,6 @@ const timeSlots = [
   { value: '16:30', label: '04:30 PM', period: 'Afternoon' }
 ];
 
-// Design system tokens
 const tokens = {
     colors: {
         primary: {
@@ -129,7 +127,6 @@ const tokens = {
     }
 };
 
-// Form style system
 const styles = {
     input: `
         w-full px-4 py-2.5 rounded-lg
@@ -240,9 +237,12 @@ const ResourceForm = () => {
     const [selectedLevel1Slot, setSelectedLevel1Slot] = useState<string>('');
     const [selectedLevel2Slot, setSelectedLevel2Slot] = useState<string>('');
 
-    const [open, setOpen] = useState(false);
+    const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(true);
+    const [isPositionDetailsOpen, setIsPositionDetailsOpen] = useState(true);
+    const [isRequirementsOpen, setIsRequirementsOpen] = useState(true);
+    const [isInterviewPanelOpen, setIsInterviewPanelOpen] = useState(true);
+    const [isAdditionalInfoOpen, setIsAdditionalInfoOpen] = useState(true);
 
-    // Calculate max skills based on experience
     const getMaxSkills = (years: number) => {
         if (years < 2) return 4;
         if (years < 4) return 6;
@@ -280,10 +280,9 @@ const ResourceForm = () => {
         const value = parseInt(e.target.value) || 0;
         setExperience(value);
         
-        // If current selected skills exceed new max, trim the excess
         const maxSkills = getMaxSkills(value);
         if (selectedRequiredSkills.length > maxSkills) {
-            setSelectedRequiredSkills(prev => prev.slice(0, maxSkills));
+            setSelectedRequiredSkills(selectedRequiredSkills.slice(0, maxSkills));
         }
     };
 
@@ -320,15 +319,12 @@ const ResourceForm = () => {
         try {
             const result = await resourceService.submitResourceRequest(submitData);
             if (result.success) {
-                console.log(result.message);
-                // You could add a toast notification here
+                toast.success(result.message);
             } else {
-                console.error(result.message);
-                // You could add a toast notification here
+                toast.error(result.message);
             }
         } catch (error) {
-            console.error('Error:', error);
-            // Handle error (show toast notification, etc.)
+            toast.error('Error: ' + error.message);
         }
     };
 
@@ -403,12 +399,13 @@ const ResourceForm = () => {
     };
 
     return (
+        
         <div className="min-h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50/20 p-4 md:p-6">
+            {/* <Toaster /> */}
             <div className="max-w-6xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Title Section */}
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-8 border border-slate-200/80">
-                        <div className="flex items-center mb-8 bg-gradient-to-r from-slate-50 to-indigo-50/50 p-4 rounded-lg border border-slate-200/80">
+                <form onSubmit={handleSubmit} className="space-y-8 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm p-8">
+                        <div className="flex items-center mb-8 from-slate-50 to-indigo-50/50 p-4 rounded-lg">
                             <input
                                 type="text"
                                 name="requestTitle"
@@ -423,481 +420,472 @@ const ResourceForm = () => {
                         <div className="space-y-8">
                             {/* Basic Information Section */}
                             <div className={styles.section}>
-                                <h3 className={styles.sectionHeader}>
+                                <h3 className={styles.sectionHeader} onClick={() => setIsBasicInfoOpen(!isBasicInfoOpen)}>
                                     <span className={styles.sectionNumber}>1</span>
                                     Basic Information
+                                    {isBasicInfoOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
                                 </h3>
-                                <div className={styles.formGrid}>
-                                    {/* Requested by */}
-                                    <div>
-                                        <label className={styles.requiredLabel}>Requested by</label>
-                                        <div className="flex gap-2">
-                                            <Input 
-                                                type="text" 
-                                                name="requestedBy.empId"
-                                                value={formData.requestedBy.empId}
-                                                onChange={handleInputChange}
-                                                className={styles.input}
-                                                placeholder="Emp ID"
-                                                required
-                                            />
-                                            <Input 
-                                                type="text" 
-                                                name="requestedBy.empName"
-                                                value={formData.requestedBy.empName}
-                                                onChange={handleInputChange}
-                                                className={styles.input}
-                                                placeholder="Employee Name"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Department */}
-                                    <div>
-                                        <label className={styles.label}>Department</label>
-                                        <div className="space-y-2">
-                                            <select
-                                                className={styles.select}
-                                                value={selectedDepartment}
-                                                onChange={handleDepartmentChange}
-                                            >
-                                                <option value="" disabled>Select department...</option>
-                                                {departmentOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {selectedDepartment === 'other' && (
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Please specify department"
-                                                    value={otherDepartment}
-                                                    onChange={handleOtherDepartmentChange}
+                                {isBasicInfoOpen && (
+                                    <div className={styles.formGrid}>
+                                        {/* Requested by */}
+                                        <div>
+                                            <label className={styles.requiredLabel}>Requested by</label>
+                                            <div className="flex gap-2">
+                                                <Input 
+                                                    type="text" 
+                                                    name="requestedBy.empId"
+                                                    value={formData.requestedBy.empId}
+                                                    onChange={handleInputChange}
                                                     className={styles.input}
+                                                    placeholder="Emp ID"
+                                                    required
                                                 />
-                                            )}
+                                                <Input 
+                                                    type="text" 
+                                                    name="requestedBy.empName"
+                                                    className={styles.input}
+                                                    placeholder="Employee Name"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>Department</label>
+                                            <div className="space-y-2">
+                                                <select
+                                                    className={styles.select}
+                                                    value={selectedDepartment}
+                                                    onChange={handleDepartmentChange}
+                                                >
+                                                    <option value="" disabled>Select department...</option>
+                                                    {departmentOptions.map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {selectedDepartment === 'other' && (
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Please specify department"
+                                                        value={otherDepartment}
+                                                        onChange={handleOtherDepartmentChange}
+                                                        className={styles.input}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Position Details Section */}
                             <div className={styles.section}>
-                                <h3 className={styles.sectionHeader}>
+                                <h3 className={styles.sectionHeader} onClick={() => setIsPositionDetailsOpen(!isPositionDetailsOpen)}>
                                     <span className={styles.sectionNumber}>2</span>
                                     Position Details
+                                    {isPositionDetailsOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
                                 </h3>
-                                <div className={styles.formGrid}>
-                                    {/* Role */}
-                                    <div>
-                                        <label className={styles.label}>Role</label>
-                                        <Input 
-                                            type="text" 
-                                            className={styles.input}
-                                            placeholder="Enter role name" 
-                                        />
-                                    </div>
-
-                                    {/* Job Type */}
-                                    <div>
-                                        <label className={styles.requiredLabel}>Job Type</label>
-                                        <Select 
-                                            value={formData.jobType} 
-                                            onValueChange={handleJobTypeChange}
-                                        >
-                                            <SelectTrigger className="w-full input-animation h-9 bg-white/50">
-                                                <SelectValue placeholder="Select job type" />
-                                            </SelectTrigger>
-                                            <SelectContent className="bg-white/90 backdrop-blur-xl border border-slate-200/80">
-                                                {jobTypes.map(type => (
-                                                    <SelectItem
-                                                        key={type.value}
-                                                        value={type.value}
-                                                        className="hover:bg-sky-50"
-                                                    >
-                                                        {type.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {/* Open Positions */}
-                                    <div>
-                                        <label className={styles.label}>Open Positions</label>
-                                        <Input 
-                                            type="number" 
-                                            className={styles.input}
-                                            defaultValue={1} 
-                                            min={1} 
-                                        />
-                                    </div>
-
-                                    {/* Location */}
-                                    <div>
-                                        <label className={styles.label}>Location</label>
-                                        <Input 
-                                            type="text" 
-                                            className={styles.input}
-                                            placeholder="Enter location" 
-                                        />
-                                    </div>
-
-                                    {/* Priority */}
-                                    <div>
-                                        <label className={styles.label}>Priority</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedPriority}
-                                            onChange={handlePriorityChange}
-                                        >
-                                            <option value="" disabled>Select priority...</option>
-                                            {priorityOptions.map(option => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Notice Period */}
-                                    <div>
-                                        <label className={styles.label}>Notice Period</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedNoticePeriod}
-                                            onChange={handleNoticePeriodChange}
-                                        >
-                                            <option value="" disabled>Select notice period...</option>
-                                            {noticePeriodOptions.map(option => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Requirements Section */}
-                            <div className={styles.section}>
-                                <h3 className={styles.sectionHeader}>
-                                    <span className={styles.sectionNumber}>3</span>
-                                    Requirements
-                                </h3>
-                                <div className={styles.formGrid}>
-                                    {/* Experience */}
-                                    <div>
-                                        <label className={styles.label}>Years of Experience</label>
-                                        <Input 
-                                            type="number" 
-                                            className={styles.input}
-                                            value={experience}
-                                            onChange={handleExperienceChange}
-                                            min={0}
-                                            max={20}
-                                        />
-                                    </div>
-
-                                    {/* Required Skills */}
-                                    <div>
-                                        <label className={styles.label}>
-                                            Required Skills (Max: {getMaxSkills(experience)})
-                                        </label>
-                                        <div className="space-y-3">
-                                            <select
-                                                className={styles.select}
-                                                onChange={handleRequiredSkillChange}
-                                                value=""
-                                            >
-                                                <option value="" disabled>Select required skills...</option>
-                                                {Object.entries(
-                                                    skillOptions.reduce((acc, skill) => {
-                                                        (acc[skill.category] = acc[skill.category] || []).push(skill);
-                                                        return acc;
-                                                    }, {} as Record<string, typeof skillOptions>)
-                                                ).map(([category, skills]) => (
-                                                    <optgroup key={category} label={category}>
-                                                        {skills.map(skill => (
-                                                            <option 
-                                                                key={skill.value} 
-                                                                value={skill.value}
-                                                                disabled={selectedRequiredSkills.includes(skill.value)}
-                                                            >
-                                                                {skill.label}
-                                                            </option>
-                                                        ))}
-                                                    </optgroup>
-                                                ))}
-                                            </select>
-                                            <div className="flex flex-wrap gap-2">
-                                                {selectedRequiredSkills.map(skill => {
-                                                    const skillObj = skillOptions.find(s => s.value === skill);
-                                                    return (
-                                                        <div key={skill} className={styles.chip}>
-                                                            {skillObj?.label}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeRequiredSkill(skill)}
-                                                                className={styles.chipButton}
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                {isPositionDetailsOpen && (
+                                    <div className={styles.formGrid}>
+                                        <div>
+                                            <label className={styles.label}>Role</label>
+                                            <Input 
+                                                type="text" 
+                                                className={styles.input}
+                                                placeholder="Enter role name" 
+                                            />
                                         </div>
-                                    </div>
 
-                                    {/* Preferred Skills */}
-                                    <div>
-                                        <label className={styles.label}>
-                                            Preferred Technical and Professional Expertise
-                                        </label>
-                                        <div className="space-y-3">
-                                            <select
-                                                className={styles.select}
-                                                onChange={handleSkillChange}
-                                                value=""
+                                        <div>
+                                            <label className={styles.requiredLabel}>Job Type</label>
+                                            <Select 
+                                                value={formData.jobType} 
+                                                onValueChange={handleJobTypeChange}
                                             >
-                                                <option value="" disabled>Select skills...</option>
-                                                {Object.entries(
-                                                    skillOptions.reduce((acc, skill) => {
-                                                        (acc[skill.category] = acc[skill.category] || []).push(skill);
-                                                        return acc;
-                                                    }, {} as Record<string, typeof skillOptions>)
-                                                ).map(([category, skills]) => (
-                                                    <optgroup key={category} label={category}>
-                                                        {skills.map(skill => (
-                                                            <option 
-                                                                key={skill.value} 
-                                                                value={skill.value}
-                                                                disabled={selectedSkills.includes(skill.value)}
-                                                            >
-                                                                {skill.label}
-                                                            </option>
-                                                        ))}
-                                                    </optgroup>
-                                                ))}
-                                            </select>
-                                            <div className="flex flex-wrap gap-2">
-                                                {selectedSkills.map(skill => {
-                                                    const skillObj = skillOptions.find(s => s.value === skill);
-                                                    return (
-                                                        <div key={skill} className={styles.chip}>
-                                                            {skillObj?.label}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeSkill(skill)}
-                                                                className={styles.chipButton}
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                <SelectTrigger className="w-full input-animation h-9 bg-white/50">
+                                                    <SelectValue placeholder="Select job type" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-white/90 backdrop-blur-xl border border-slate-200/80">
+                                                    {jobTypes.map(type => (
+                                                        <SelectItem
+                                                            key={type.value}
+                                                            value={type.value}
+                                                            className="hover:bg-sky-50"
+                                                        >
+                                                            {type.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    </div>
 
-                                    {/* Education */}
-                                    <div>
-                                        <label className={styles.label}>Education</label>
-                                        <div className="space-y-2">
+                                        <div>
+                                            <label className={styles.label}>Open Positions</label>
+                                            <Input 
+                                                type="number" 
+                                                className={styles.input}
+                                                defaultValue={1} 
+                                                min={1} 
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>Location</label>
+                                            <Input 
+                                                type="text" 
+                                                className={styles.input}
+                                                placeholder="Enter location" 
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>Priority</label>
                                             <select
                                                 className={styles.select}
-                                                value={selectedEducation}
-                                                onChange={handleEducationChange}
+                                                value={selectedPriority}
+                                                onChange={handlePriorityChange}
                                             >
-                                                <option value="" disabled>Select education qualification...</option>
-                                                {educationOptions.map(option => (
+                                                <option value="" disabled>Select priority...</option>
+                                                {priorityOptions.map(option => (
                                                     <option key={option.value} value={option.value}>
                                                         {option.label}
                                                     </option>
                                                 ))}
                                             </select>
+                                        </div>
 
-                                            {selectedEducation === 'other' && (
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Please specify education"
-                                                    value={otherEducation}
-                                                    onChange={handleOtherEducationChange}
-                                                    className={styles.input}
-                                                />
-                                            )}
+                                        <div>
+                                            <label className={styles.label}>Notice Period</label>
+                                            <select
+                                                className={styles.select}
+                                                value={selectedNoticePeriod}
+                                                onChange={handleNoticePeriodChange}
+                                            >
+                                                <option value="" disabled>Select notice period...</option>
+                                                {noticePeriodOptions.map(option => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
-
-                                    {/* Responsibilities */}
-                                    <div className="col-span-full">
-                                        <label className={styles.label}>Responsibilities</label>
-                                        <Textarea 
-                                            placeholder="Enter responsibilities" 
-                                            className={styles.textarea}
-                                        />
-                                    </div>
-
-                                    {/* Certifications */}
-                                    <div className="col-span-full">
-                                        <label className={styles.label}>Required Certifications</label>
-                                        <Textarea 
-                                            placeholder="Enter required certifications..." 
-                                            className={styles.textarea}
-                                        />
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Interview Panel Section */}
                             <div className={styles.section}>
-                                <h3 className={styles.sectionHeader}>
+                                <h3 className={styles.sectionHeader} onClick={() => setIsRequirementsOpen(!isRequirementsOpen)}>
+                                    <span className={styles.sectionNumber}>3</span>
+                                    Requirements
+                                    {isRequirementsOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
+                                </h3>
+                                {isRequirementsOpen && (
+                                    <div className={styles.formGrid}>
+                                        <div>
+                                            <label className={styles.label}>Years of Experience</label>
+                                            <Input 
+                                                type="number" 
+                                                className={styles.input}
+                                                value={experience}
+                                                onChange={handleExperienceChange}
+                                                min={0}
+                                                max={20}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>
+                                                Required Skills (Max: {getMaxSkills(experience)})
+                                            </label>
+                                            <div className="space-y-3">
+                                                <select
+                                                    className={styles.select}
+                                                    onChange={handleRequiredSkillChange}
+                                                    value=""
+                                                >
+                                                    <option value="" disabled>Select required skills...</option>
+                                                    {Object.entries(
+                                                        skillOptions.reduce((acc, skill) => {
+                                                            (acc[skill.category] = acc[skill.category] || []).push(skill);
+                                                            return acc;
+                                                        }, {} as Record<string, typeof skillOptions>)
+                                                    ).map(([category, skills]) => (
+                                                        <optgroup key={category} label={category}>
+                                                            {skills.map(skill => (
+                                                                <option 
+                                                                    key={skill.value} 
+                                                                    value={skill.value}
+                                                                    disabled={selectedRequiredSkills.includes(skill.value)}
+                                                                >
+                                                                    {skill.label}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    ))}
+                                                </select>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedRequiredSkills.map(skill => {
+                                                        const skillObj = skillOptions.find(s => s.value === skill);
+                                                        return (
+                                                            <div key={skill} className={styles.chip}>
+                                                                {skillObj?.label}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeRequiredSkill(skill)}
+                                                                    className={styles.chipButton}
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>
+                                                Preferred Technical and Professional Expertise
+                                            </label>
+                                            <div className="space-y-3">
+                                                <select
+                                                    className={styles.select}
+                                                    onChange={handleSkillChange}
+                                                    value=""
+                                                >
+                                                    <option value="" disabled>Select skills...</option>
+                                                    {Object.entries(
+                                                        skillOptions.reduce((acc, skill) => {
+                                                            (acc[skill.category] = acc[skill.category] || []).push(skill);
+                                                            return acc;
+                                                        }, {} as Record<string, typeof skillOptions>)
+                                                    ).map(([category, skills]) => (
+                                                        <optgroup key={category} label={category}>
+                                                            {skills.map(skill => (
+                                                                <option 
+                                                                    key={skill.value} 
+                                                                    value={skill.value}
+                                                                    disabled={selectedSkills.includes(skill.value)}
+                                                                >
+                                                                    {skill.label}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    ))}
+                                                </select>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedSkills.map(skill => {
+                                                        const skillObj = skillOptions.find(s => s.value === skill);
+                                                        return (
+                                                            <div key={skill} className={styles.chip}>
+                                                                {skillObj?.label}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeSkill(skill)}
+                                                                    className={styles.chipButton}
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={styles.label}>Education</label>
+                                            <div className="space-y-2">
+                                                <select
+                                                    className={styles.select}
+                                                    value={selectedEducation}
+                                                    onChange={handleEducationChange}
+                                                >
+                                                    <option value="" disabled>Select education qualification...</option>
+                                                    {educationOptions.map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+
+                                                {selectedEducation === 'other' && (
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Please specify education"
+                                                        value={otherEducation}
+                                                        onChange={handleOtherEducationChange}
+                                                        className={styles.input}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="col-span-full">
+                                            <label className={styles.label}>Responsibilities</label>
+                                            <Textarea 
+                                                placeholder="Enter responsibilities" 
+                                                className={styles.textarea}
+                                            />
+                                        </div>
+
+                                        <div className="col-span-full">
+                                            <label className={styles.label}>Required Certifications</label>
+                                            <Textarea 
+                                                placeholder="Enter required certifications..." 
+                                                className={styles.textarea}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className={styles.section}>
+                                <h3 className={styles.sectionHeader} onClick={() => setIsInterviewPanelOpen(!isInterviewPanelOpen)}>
                                     <span className={styles.sectionNumber}>4</span>
                                     Interview Panel
+                                    {isInterviewPanelOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
                                 </h3>
-                                <div className={styles.formGrid}>
-                                    {/* Level 1 Panel */}
-                                    <div>
-                                        <label className={styles.label}>Level 1 Panel</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedLevel1Panel}
-                                            onChange={handleLevel1PanelChange}
-                                        >
-                                            <option value="" disabled>Select panel member...</option>
-                                            {Object.entries(
-                                                panelMembers.reduce((acc, member) => {
-                                                    (acc[member.department] = acc[member.department] || []).push(member);
-                                                    return acc;
-                                                }, {} as Record<string, typeof panelMembers>)
-                                            ).map(([department, members]) => (
-                                                <optgroup key={department} label={department}>
-                                                    {members.map(member => (
-                                                        <option 
-                                                            key={member.value} 
-                                                            value={member.value}
-                                                            disabled={member.value === selectedLevel2Panel}
-                                                        >
-                                                            {member.label}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
-                                    </div>
+                                {isInterviewPanelOpen && (
+                                    <div className={styles.formGrid}>
+                                        <div>
+                                            <label className={styles.label}>Level 1 Panel</label>
+                                            <select
+                                                className={styles.select}
+                                                value={selectedLevel1Panel}
+                                                onChange={handleLevel1PanelChange}
+                                            >
+                                                <option value="" disabled>Select panel member...</option>
+                                                {Object.entries(
+                                                    panelMembers.reduce((acc, member) => {
+                                                        (acc[member.department] = acc[member.department] || []).push(member);
+                                                        return acc;
+                                                    }, {} as Record<string, typeof panelMembers>)
+                                                ).map(([department, members]) => (
+                                                    <optgroup key={department} label={department}>
+                                                        {members.map(member => (
+                                                            <option 
+                                                                key={member.value} 
+                                                                value={member.value}
+                                                                disabled={member.value === selectedLevel2Panel}
+                                                            >
+                                                                {member.label}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                    {/* Level 1 Time Slot */}
-                                    <div>
-                                        <label className={styles.label}>Interview Slots</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedLevel1Slot}
-                                            onChange={handleLevel1SlotChange}
-                                        >
-                                            <option value="" disabled>Select time slot...</option>
-                                            {Object.entries(
-                                                timeSlots.reduce((acc, slot) => {
-                                                    (acc[slot.period] = acc[slot.period] || []).push(slot);
-                                                    return acc;
-                                                }, {} as Record<string, typeof timeSlots>)
-                                            ).map(([period, slots]) => (
-                                                <optgroup key={period} label={period}>
-                                                    {slots.map(slot => (
-                                                        <option 
-                                                            key={slot.value} 
-                                                            value={slot.value}
-                                                            disabled={slot.value === selectedLevel2Slot}
-                                                        >
-                                                            {slot.label}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
-                                    </div>
+                                        <div>
+                                            <label className={styles.label}>Interview Slots</label>
+                                            <select
+                                                className={styles.select}
+                                                value={selectedLevel1Slot}
+                                                onChange={handleLevel1SlotChange}
+                                            >
+                                                <option value="" disabled>Select time slot...</option>
+                                                {Object.entries(
+                                                    timeSlots.reduce((acc, slot) => {
+                                                        (acc[slot.period] = acc[slot.period] || []).push(slot);
+                                                        return acc;
+                                                    }, {} as Record<string, typeof timeSlots>)
+                                                ).map(([period, slots]) => (
+                                                    <optgroup key={period} label={period}>
+                                                        {slots.map(slot => (
+                                                            <option 
+                                                                key={slot.value} 
+                                                                value={slot.value}
+                                                                disabled={slot.value === selectedLevel2Slot}
+                                                            >
+                                                                {slot.label}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                    {/* Level 2 Panel */}
-                                    <div>
-                                        <label className={styles.label}>Level 2 Panel</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedLevel2Panel}
-                                            onChange={handleLevel2PanelChange}
-                                        >
-                                            <option value="" disabled>Select panel member...</option>
-                                            {Object.entries(
-                                                panelMembers.reduce((acc, member) => {
-                                                    (acc[member.department] = acc[member.department] || []).push(member);
-                                                    return acc;
-                                                }, {} as Record<string, typeof panelMembers>)
-                                            ).map(([department, members]) => (
-                                                <optgroup key={department} label={department}>
-                                                    {members.map(member => (
-                                                        <option 
-                                                            key={member.value} 
-                                                            value={member.value}
-                                                            disabled={member.value === selectedLevel1Panel}
-                                                        >
-                                                            {member.label}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
-                                    </div>
+                                        <div>
+                                            <label className={styles.label}>Level 2 Panel</label>
+                                            <select
+                                                className={styles.select}
+                                                value={selectedLevel2Panel}
+                                                onChange={handleLevel2PanelChange}
+                                            >
+                                                <option value="" disabled>Select panel member...</option>
+                                                {Object.entries(
+                                                    panelMembers.reduce((acc, member) => {
+                                                        (acc[member.department] = acc[member.department] || []).push(member);
+                                                        return acc;
+                                                    }, {} as Record<string, typeof panelMembers>)
+                                                ).map(([department, members]) => (
+                                                    <optgroup key={department} label={department}>
+                                                        {members.map(member => (
+                                                            <option 
+                                                                key={member.value} 
+                                                                value={member.value}
+                                                                disabled={member.value === selectedLevel1Panel}
+                                                            >
+                                                                {member.label}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                    {/* Level 2 Time Slot */}
-                                    <div>
-                                        <label className={styles.label}>Interview Slots</label>
-                                        <select
-                                            className={styles.select}
-                                            value={selectedLevel2Slot}
-                                            onChange={handleLevel2SlotChange}
-                                        >
-                                            <option value="" disabled>Select time slot...</option>
-                                            {Object.entries(
-                                                timeSlots.reduce((acc, slot) => {
-                                                    (acc[slot.period] = acc[slot.period] || []).push(slot);
-                                                    return acc;
-                                                }, {} as Record<string, typeof timeSlots>)
-                                            ).map(([period, slots]) => (
-                                                <optgroup key={period} label={period}>
-                                                    {slots.map(slot => (
-                                                        <option 
-                                                            key={slot.value} 
-                                                            value={slot.value}
-                                                            disabled={slot.value === selectedLevel1Slot}
-                                                        >
-                                                            {slot.label}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
+                                        <div>
+                                            <label className={styles.label}>Interview Slots</label>
+                                            <select
+                                                className={styles.select}
+                                                value={selectedLevel2Slot}
+                                                onChange={handleLevel2SlotChange}
+                                            >
+                                                <option value="" disabled>Select time slot...</option>
+                                                {Object.entries(
+                                                    timeSlots.reduce((acc, slot) => {
+                                                        (acc[slot.period] = acc[slot.period] || []).push(slot);
+                                                        return acc;
+                                                    }, {} as Record<string, typeof timeSlots>)
+                                                ).map(([period, slots]) => (
+                                                    <optgroup key={period} label={period}>
+                                                        {slots.map(slot => (
+                                                            <option 
+                                                                key={slot.value} 
+                                                                value={slot.value}
+                                                                disabled={slot.value === selectedLevel1Slot}
+                                                            >
+                                                                {slot.label}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
-                            {/* Additional Information Section */}
                             <div className={styles.section}>
-                                <h3 className={styles.sectionHeader}>
+                                <h3 className={styles.sectionHeader} onClick={() => setIsAdditionalInfoOpen(!isAdditionalInfoOpen)}>
                                     <span className={styles.sectionNumber}>5</span>
                                     Additional Information
+                                    {isAdditionalInfoOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
                                 </h3>
-                                <div>
-                                    <label className={styles.label}>Additional reasons for hiring</label>
-                                    <Textarea 
-                                        placeholder="Enter additional reasons for hiring" 
-                                        className={styles.textarea}
-                                    />
-                                </div>
+                                {isAdditionalInfoOpen && (
+                                    <div>
+                                        <label className={styles.label}>Additional reasons for hiring</label>
+                                        <Textarea 
+                                            placeholder="Enter additional reasons for hiring" 
+                                            className={styles.textarea}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Form Actions */}
                         <div className="flex justify-end gap-4 pt-8 mt-8 border-t border-slate-200">
                             <Button 
                                 variant="outline" 
@@ -920,4 +908,4 @@ const ResourceForm = () => {
     );
 };
 
-export default ResourceForm; 
+export default ResourceForm;

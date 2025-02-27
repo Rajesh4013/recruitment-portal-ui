@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, Send } from 'lucide-react';
+import { Home, FileText, Send, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const AppSideBar = () => {
@@ -51,6 +51,19 @@ const AppSideBar = () => {
               >
                 <Send size={20} />
                 <span>Requests</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 p-2 rounded-lg text-slate-300 hover:bg-slate-700/50 transition-all duration-200 ${
+                    isActive ? 'bg-slate-700/50 text-sky-400 font-medium' : ''
+                  }`
+                }
+              >
+                <Settings size={20} />
+                <span>Settings</span>
               </NavLink>
             </li>
           </ul>
