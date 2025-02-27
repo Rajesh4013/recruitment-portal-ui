@@ -1,15 +1,19 @@
 import React from 'react';
+import RequestsTable from '@/components/RequestsTable';
 
 const Requests = () => {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-gray-900">Requests</h1>
-      <div className="mt-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-medium text-gray-900">All Requests</h2>
-          {/* Add requests table or content here */}
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-semibold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent">
+          Resource Requests
+        </h1>
+        <p className="mt-2 text-slate-600">
+          View and manage all resource requests
+        </p>
       </div>
+
+      <RequestsTable />
     </div>
   );
 };

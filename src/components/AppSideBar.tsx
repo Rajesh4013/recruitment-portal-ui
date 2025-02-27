@@ -4,10 +4,12 @@ import { NavLink } from 'react-router-dom';
 
 const AppSideBar = () => {
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0">
+    <div className="w-64 h-screen bg-gradient-to-b from-slate-900 to-slate-800 fixed left-0 top-0 border-r border-slate-700/50">
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
+        <div className="p-4 border-b border-slate-700/50">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
         </div>
         
         <nav className="flex-1 p-4">
@@ -16,8 +18,8 @@ const AppSideBar = () => {
               <NavLink
                 to="/home"
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 ${
-                    isActive ? 'bg-gray-100 text-blue-600' : ''
+                  `flex items-center space-x-3 p-2 rounded-lg text-slate-300 hover:bg-slate-700/50 transition-all duration-200 ${
+                    isActive ? 'bg-slate-700/50 text-sky-400 font-medium' : ''
                   }`
                 }
               >
@@ -29,8 +31,8 @@ const AppSideBar = () => {
               <NavLink
                 to="/resources"
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 ${
-                    isActive ? 'bg-gray-100 text-blue-600' : ''
+                  `flex items-center space-x-3 p-2 rounded-lg text-slate-300 hover:bg-slate-700/50 transition-all duration-200 ${
+                    isActive ? 'bg-slate-700/50 text-sky-400 font-medium' : ''
                   }`
                 }
               >
@@ -42,8 +44,8 @@ const AppSideBar = () => {
               <NavLink
                 to="/requests"
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 ${
-                    isActive ? 'bg-gray-100 text-blue-600' : ''
+                  `flex items-center space-x-3 p-2 rounded-lg text-slate-300 hover:bg-slate-700/50 transition-all duration-200 ${
+                    isActive ? 'bg-slate-700/50 text-sky-400 font-medium' : ''
                   }`
                 }
               >
